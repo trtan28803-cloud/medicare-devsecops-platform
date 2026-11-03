@@ -1,0 +1,4 @@
+# Suricata IDS Rules (Passive Detection Mode)
+alert http 10.30.10.0/24 any -> 10.20.10.50 80 (msg:"HICP LAB HTTP IDS connectivity probe"; flow:established,to_server; http.uri; content:"/demo/ids-probe"; sid:1001001; rev:1;)
+alert tcp 10.30.10.0/24 any -> 10.20.10.50 any (msg:"HICP LAB TCP SYN burst"; flags:S; detection_filter:track by_src,count 20,seconds 60; sid:1001002; rev:1;)
+alert dns 10.30.10.0/24 any -> any 53 (msg:"Possible DNS Tunneling - Excessive Queries (HICP LAB marker)"; dns.query; content:".hicp-demo.invalid"; nocase; detection_filter:track by_src,count 50,seconds 60; sid:1001003; rev:1;)

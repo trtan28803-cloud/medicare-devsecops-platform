@@ -1,0 +1,4 @@
+# Suricata IPS Rules (Active Drop Mode)
+drop http 10.30.10.0/24 any -> 10.20.10.50 80 (msg:"HICP IPS BLOCK: HTTP IDS connectivity probe"; flow:established,to_server; http.uri; content:"/demo/ids-probe"; sid:1001001; rev:2;)
+drop tcp 10.30.10.0/24 any -> 10.20.10.50 any (msg:"HICP IPS BLOCK: TCP SYN burst flood"; flags:S; detection_filter:track by_src,count 20,seconds 60; sid:1001002; rev:2;)
+drop dns 10.30.10.0/24 any -> any 53 (msg:"HICP IPS BLOCK: Possible DNS Tunneling Data Exfiltration"; dns.query; content:".hicp-demo.invalid"; nocase; detection_filter:track by_src,count 50,seconds 60; sid:1001003; rev:2;)

@@ -1,0 +1,26 @@
+[Unit]
+Description=HICP synthetic EHR lab
+After=network.target
+
+[Service]
+Type=simple
+User=hicp-ehr
+Group=hicp-ehr
+WorkingDirectory=/home/trtan/hicp-demo
+ExecStart=/usr/bin/python3 /home/trtan/hicp-demo/app.py
+Restart=always
+RestartSec=3
+
+# Cấp quyền bind cổng 80 cho user phi đặc quyền
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+ProtectSystem=strict
+ProtectHome=false
+PrivateTmp=true
+ReadWritePaths=/var/lib/hicp-ehr
+NoNewPrivileges=true
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

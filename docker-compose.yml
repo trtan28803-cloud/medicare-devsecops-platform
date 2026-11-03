@@ -1,0 +1,53 @@
+# Docker Compose Stack cho Hệ thống MediCare (App + Nginx TLS + Prometheus)
+version: "3.9"
+
+services:
+  medicare-ehr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medicare-ehr
+    restart: unless-stopped
+    environment:
+      - HICP_HOST=0.0.0.0
+      - HICP_PORT=8080
+      - HICP_DATA_DIR=/var/lib/hicp-ehr
+      - TRUST_LOCAL_PROXY=1
+    ports:
+      - "8080:8080"
+    volumes:
+      - medicare_data:/var/lib/hicp-ehr
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+    networks:
+      - medicare-net
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: medicare-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      medicare-ehr:
+        condition: service_healthy
+    networks:
+      - medicare-net
+
+volumes:
+  medicare_data:
+    driver: local
+
+networks:
+  medicare-net:
+    driver: bridge
