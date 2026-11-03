@@ -1,0 +1,13 @@
+# Cấu hình Prometheus Scrape cho Hệ thống MediCare (/metrics)
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "medicare-hicp-ehr"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["medicare-ehr:8080", "10.20.10.50:80"]
+        labels:
+          environment: "production"
+          service: "medicare-ehr"

@@ -1,0 +1,16 @@
+# --- Tài liệu cá nhân & Cẩm nang ôn tập (Không push lên GitHub) ---
+docs/
+HICP_SECURITY_FEATURES_DEEP_DIVE.md
+*.zip
+
+# --- Dữ liệu runtime, Database & Backup nhạy cảm ---
+*.db
+*.sqlite
+*.sqlite3
+*.enc
+backups/
+__pycache__/
+*.py[cod]
+.env
+.venv/
+venv/

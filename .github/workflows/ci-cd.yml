@@ -1,0 +1,88 @@
+# GitHub Actions CI/CD & DevSecOps Pipeline (4 Stages)
+# Tự động kích hoạt khi git push hoặc tạo Pull Request
+name: MediCare DevSecOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # STAGE 1: Kiểm tra cú pháp Python, JavaScript & Shell Scripts (Lint & Syntax)
+  lint-and-syntax:
+    name: "Stage 1: Code Quality & Syntax Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate Python syntax (py_compile)
+        run: python3 -m py_compile app.py scripts/setup.py scripts/test-app.py scripts/dns-lab.py
+
+      - name: Validate Frontend JavaScript syntax
+        run: node --check static/app.js
+
+      - name: Validate Bash Deployment & Backup scripts
+        run: |
+          bash -n scripts/install-ubuntu.sh
+          bash -n scripts/deploy-domain-https.sh
+          bash -n scripts/backup-ehr.sh
+          bash -n deploy/wazuh-active-response-ips.sh
+
+  # STAGE 2: Quét bảo mật mã nguồn tĩnh (SAST với Bandit)
+  sast-security-scan:
+    name: "Stage 2: DevSecOps SAST Security Scan"
+    runs-on: ubuntu-latest
+    needs: lint-and-syntax
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Bandit SAST Scanner
+        run: pip install bandit
+
+      - name: Run Bandit SAST on Python codebase
+        run: bandit -r app.py scripts/ -ll -ii
+
+  # STAGE 3: Kiểm thử Tích hợp Tự động Toàn diện (12 Kịch bản E2E & Bảo mật)
+  automated-e2e-tests:
+    name: "Stage 3: Automated E2E & Security Integration Tests"
+    runs-on: ubuntu-latest
+    needs: lint-and-syntax
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run 12 E2E Security & Functional Test Suites (RBAC, MAC IPS, OTP, DLP, Prometheus)
+        run: python3 scripts/test-app.py
+
+  # STAGE 4: Đóng gói Docker Image & Kiểm thử Khói (Container Smoke Test)
+  docker-build-and-smoke-test:
+    name: "Stage 4: Docker Build & Healthcheck Smoke Test"
+    runs-on: ubuntu-latest
+    needs: [sast-security-scan, automated-e2e-tests]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Production Docker Image
+        run: docker build -t medicare-hicp-ehr:v2.2 .
+
+      - name: Run Container Smoke Test (/health & /metrics)
+        run: |
+          docker run -d --name medicare-test -p 18080:8080 medicare-hicp-ehr:v2.2
+          sleep 3
+          curl -fsSL http://127.0.0.1:18080/health | grep '"status": "ok"'
+          curl -fsSL http://127.0.0.1:18080/metrics | grep 'medicare_records_total'
+          docker stop medicare-test && docker rm medicare-test

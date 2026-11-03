@@ -1,0 +1,5 @@
+<!-- Cấu hình thu thập log JSONL cho Wazuh -->
+<localfile>
+  <log_format>json</log_format>
+  <location>/var/lib/hicp-ehr/audit.jsonl</location>
+</localfile>

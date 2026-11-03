@@ -1,0 +1,89 @@
+<group name="hicp_lab,">
+
+  <!-- ================= NHÓM 1: RULES CHO WEB EHR v2.2, RBAC, AUDIT DIFF, MAC IDS/IPS & IoMT ================= -->
+  <rule id="100510" level="3">
+    <decoded_as>json</decoded_as>
+    <field name="app">^hicp_ehr$</field>
+    <description>HICP EHR v2.2 audit event: $(event) by $(username) [role=$(role), mac=$(mac_address)]</description>
+  </rule>
+
+  <rule id="100511" level="5">
+    <if_sid>100510</if_sid>
+    <field name="event">^login_failed$|^mfa_failed$</field>
+    <description>HICP EHR failed login from IP $(source_ip) [MAC $(mac_address)] for user $(username)</description>
+  </rule>
+
+  <rule id="100512" level="7">
+    <if_sid>100510</if_sid>
+    <field name="event">^export_records$</field>
+    <description>HICP EHR synthetic patient CSV export by $(username) from $(source_ip) [MAC $(mac_address)]</description>
+  </rule>
+
+  <rule id="100513" level="6">
+    <if_sid>100510</if_sid>
+    <field name="event">^access_denied$|^appointment_rejected_time_window$</field>
+    <description>HICP EHR policy/access denied ($(event)) for user $(username) on $(target)</description>
+  </rule>
+
+  <!-- Rule 100514: Cảnh báo IDS khi nhập sai mật khẩu từ 2 lần trở lên trong vòng 5 phút (300 giây) -->
+  <rule id="100514" level="8">
+    <if_sid>100510</if_sid>
+    <field name="event">^ids_bruteforce_warning$</field>
+    <description>HICP IDS Brute-Force Warning (>=2 failed logins in 5m) from device MAC $(mac_address) [IP $(source_ip)] targeting $(username)</description>
+  </rule>
+
+  <!-- Rule 100515: Cảnh báo IPS Khóa tạm thời thiết bị theo Địa chỉ MAC (đủ 5 lần sai trong 10 phút) / Active DLP / Cooldown 60s -->
+  <rule id="100515" level="11">
+    <if_sid>100510</if_sid>
+    <field name="event">^ips_mac_temp_blocked$|^dlp_export_blocked$|^login_throttled$|^record_save_cooldown_blocked$|^appointment_rejected_daily_limit$</field>
+    <description>HICP IPS Active Protection / MAC Blacklist triggered ($(event)) on $(target) [MAC $(mac_address), IP $(source_ip)]</description>
+  </rule>
+
+  <!-- Rule 100516: Cảnh báo tấn công/giả mạo Thiết bị Y tế IoMT -->
+  <rule id="100516" level="12">
+    <if_sid>100510</if_sid>
+    <field name="event">^iomt_alert$</field>
+    <description>HICP IoMT Medical Device Security Alert on $(target) from $(source_ip)</description>
+  </rule>
+
+  <!-- Rule 100517: Cảnh báo Admin hệ thống cố tình truy cập/can thiệp Hồ sơ bệnh án (Vi phạm HICP Separation of Duties) -->
+  <rule id="100517" level="10">
+    <if_sid>100510</if_sid>
+    <field name="event">^admin_phi_access_blocked$</field>
+    <description>HICP ZERO TRUST VIOLATION: System Admin $(username) attempted unauthorized access to clinical PHI ($(target)) from $(source_ip)</description>
+  </rule>
+
+  <!-- Rule 100518: Cảnh báo Bệnh nhân hoặc Y tá vượt quyền chỉnh sửa/xóa Hồ sơ bệnh án -->
+  <rule id="100518" level="8">
+    <if_sid>100510</if_sid>
+    <field name="event">^rbac_medical_record_violation$</field>
+    <description>HICP RBAC Least Privilege Violation: User $(username) (role=$(role)) attempted unauthorized medical record modification on $(target)</description>
+  </rule>
+
+  <!-- Rule 100519: Giám sát thao tác Xóa hồ sơ bệnh án của Bác sĩ -->
+  <rule id="100519" level="7">
+    <if_sid>100510</if_sid>
+    <field name="event">^delete_record$</field>
+    <description>HICP Audit Trail: Medical record $(target) deleted by Doctor $(username) from $(source_ip)</description>
+  </rule>
+
+  <!-- ================= NHÓM 2: RULES CHO SURICATA IDS / IPS ================= -->
+  <rule id="100520" level="10">
+    <if_group>suricata</if_group>
+    <field name="alert.signature_id">^1001001$</field>
+    <description>HICP LAB Suricata HTTP probe detected</description>
+  </rule>
+
+  <rule id="100521" level="10">
+    <if_group>suricata</if_group>
+    <field name="alert.signature_id">^1001002$</field>
+    <description>HICP LAB Suricata TCP SYN burst detected</description>
+  </rule>
+
+  <rule id="100522" level="12">
+    <if_group>suricata</if_group>
+    <field name="alert.signature_id">^1001003$</field>
+    <description>Possible DNS Tunneling - Excessive Queries (HICP LAB marker)</description>
+  </rule>
+
+</group>
