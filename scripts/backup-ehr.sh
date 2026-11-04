@@ -1,29 +1,48 @@
 #!/usr/bin/env bash
-# Kịch bản Sao lưu Nóng CSDL SQLite (Zero-Downtime Hot Backup) & Mã hóa AES-256
-# Tự động xoay vòng và dọn dẹp các bản sao lưu cũ quá 30 ngày (Retention Policy)
+# Automated SQLite Online Backup + AES-256-CBC Encryption
 set -euo pipefail
 
-DATA_DIR="${HICP_DATA_DIR:-/var/lib/hicp-ehr}"
-BACKUP_DIR="${HICP_BACKUP_DIR:-/var/backups/hicp-ehr-vault}"
-PASSPHRASE="${HICP_BACKUP_KEY:-HICP-Hospital-Offline-Vault-Key-2026}"
-RETENTION_DAYS="${HICP_BACKUP_RETENTION_DAYS:-30}"
-TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
+APP_DIR="${APP_DIR:-/opt/medicare-ehr}"
+DATA_DIR="${DATA_DIR:-${APP_DIR}/data_vault}"
+BACKUP_DIR="${BACKUP_DIR:-/var/backups/medicare-ehr}"
+RETENTION_DAYS="${RETENTION_DAYS:-7}"
+TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+PASSPHRASE_FILE="${PASSPHRASE_FILE:-${DATA_DIR}/.vault.key}"
 
-sudo mkdir -p "$BACKUP_DIR"
-sudo chmod 700 "$BACKUP_DIR"
+mkdir -p "${BACKUP_DIR}"
+chmod 700 "${BACKUP_DIR}"
 
-TMP_DB="/tmp/ehr_snapshot_${TIMESTAMP}.db"
-sqlite3 "${DATA_DIR}/ehr.db" ".backup '${TMP_DB}'"
+if [[ ! -f "${DATA_DIR}/ehr.db" ]]; then
+    echo "[ERROR] Database not found at ${DATA_DIR}/ehr.db" >&2
+    exit 1
+fi
 
-sudo openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
-  -in "$TMP_DB" \
-  -out "${BACKUP_DIR}/ehr_${TIMESTAMP}.db.enc" \
-  -pass "pass:${PASSPHRASE}"
+if [[ ! -f "${PASSPHRASE_FILE}" ]]; then
+    openssl rand -hex 32 > "${PASSPHRASE_FILE}"
+    chmod 600 "${PASSPHRASE_FILE}"
+fi
 
-rm -f "$TMP_DB"
-sudo chmod 400 "${BACKUP_DIR}/ehr_${TIMESTAMP}.db.enc"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "${TMP_DIR}"' EXIT
 
-# Xoay vòng tự động: xóa các bản sao lưu đã cũ hơn RETENTION_DAYS (mặc định 30 ngày)
-sudo find "$BACKUP_DIR" -maxdepth 1 -type f -name "ehr_*.db.enc" -mtime +"$RETENTION_DAYS" -delete 2>/dev/null || true
+# Online atomic SQLite backup (WAL-safe via Python native sqlite3 backup API)
+python3 -c "import sqlite3; src=sqlite3.connect('${DATA_DIR}/ehr.db'); dst=sqlite3.connect('${TMP_DIR}/ehr.db'); src.backup(dst); dst.close(); src.close()"
+cp -p "${PASSPHRASE_FILE}" "${TMP_DIR}/.vault.key"
 
-echo "[+] Đã sao lưu nóng và mã hóa AES-256-CBC thành công: ${BACKUP_DIR}/ehr_${TIMESTAMP}.db.enc (Lưu trữ ${RETENTION_DAYS} ngày)"
+for f in users.json audit.jsonl; do
+    if [[ -f "${DATA_DIR}/${f}" ]]; then
+        cp -p "${DATA_DIR}/${f}" "${TMP_DIR}/${f}"
+    fi
+done
+
+ARCHIVE_FILE="${BACKUP_DIR}/medicare-ehr-${TIMESTAMP}.tar.gz.enc"
+tar -czf - -C "${TMP_DIR}" . | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
+    -pass "file:${PASSPHRASE_FILE}" -out "${ARCHIVE_FILE}"
+
+chmod 600 "${ARCHIVE_FILE}"
+sha256sum "${ARCHIVE_FILE}" > "${ARCHIVE_FILE}.sha256"
+
+# Prune backups older than RETENTION_DAYS
+find "${BACKUP_DIR}" -name "medicare-ehr-*.tar.gz.enc*" -mtime +"${RETENTION_DAYS}" -delete
+
+echo "[OK] Encrypted backup created: ${ARCHIVE_FILE}"
