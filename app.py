@@ -31,7 +31,7 @@ DB_PATH = DATA_DIR / "ehr.db"
 USERS_PATH = DATA_DIR / "users.json"
 AUDIT_JSONL_PATH = DATA_DIR / "audit.jsonl"
 
-HOST = os.environ.get("HICP_HOST", os.environ.get("HOST", "0.0.0.0"))
+HOST = os.environ.get("HICP_HOST", os.environ.get("HOST", "127.0.0.1"))
 PORT = int(os.environ.get("HICP_PORT", os.environ.get("PORT", "80")))
 TRUST_LOCAL_PROXY = os.environ.get("TRUST_LOCAL_PROXY", "0") == "1"
 TLS_ENABLED = os.environ.get("HICP_TLS_ENABLED", "0") == "1"
@@ -667,8 +667,10 @@ def prune_record_revisions(conn: sqlite3.Connection, record_id: str, now_epoch: 
             ids_to_delete.append(rev_id)
 
     if ids_to_delete:
-        placeholders = ",".join("?" for _ in ids_to_delete)
-        conn.execute(f"DELETE FROM record_revisions WHERE id IN ({placeholders})", ids_to_delete)
+        conn.executemany(
+            "DELETE FROM record_revisions WHERE id = ?",
+            [(rev_id,) for rev_id in ids_to_delete],
+        )
     return len(ids_to_delete)
 
 
@@ -928,8 +930,14 @@ class HICPRequestHandler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         ip = self.client_ip()
 
-        if path == "/health":
+        if path in ("/health", "/healthz"):
             self.send_json(HTTPStatus.OK, {"status": "ok", "service": "hicp_ehr", "version": "2.2"})
+            return
+
+        if path in ("/ready", "/readyz"):
+            with sqlite3.connect(DB_PATH, timeout=5) as conn:
+                conn.execute("SELECT 1").fetchone()
+            self.send_json(HTTPStatus.OK, {"status": "ready", "database": "wal_ok", "version": "2.2"})
             return
 
         if path == "/metrics":

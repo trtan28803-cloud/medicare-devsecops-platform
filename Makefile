@@ -26,7 +26,7 @@ test: lint
 	python3 scripts/test-app.py
 
 run:
-	HICP_DATA_DIR=./data_vault HICP_PORT=8080 python3 app.py
+	HICP_DATA_DIR=./data_vault HICP_HOST=0.0.0.0 HICP_PORT=8080 python3 app.py
 
 docker-build:
 	docker build -t medicare-hicp-ehr:v2.2 .

@@ -7,6 +7,7 @@ Type=simple
 User=hicp-ehr
 Group=hicp-ehr
 WorkingDirectory=/home/trtan/hicp-demo
+Environment="HICP_HOST=0.0.0.0"
 ExecStart=/usr/bin/python3 /home/trtan/hicp-demo/app.py
 Restart=always
 RestartSec=3
