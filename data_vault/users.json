@@ -1,58 +1,72 @@
 {
-  "admin": {
-    "role": "admin",
-    "full_name": "Quản trị viên Hệ thống (IT/SOC)",
-    "department": null,
-    "linked_patient_id": null,
-    "salt": "dd189c2bb76a96c6f505a4c0bdaf3e6c",
-    "hash": "a81d37320a8f59cfb980c0719315ce305cd23a328622ff195ed00618d0782ea5"
-  },
   "doctor": {
+    "id": 2,
     "role": "doctor",
+    "salt": "96dd0ca34ed590018d8df53165c99e42",
+    "hash": "fc8ff87f5483fa7672cbe0270e742bb8eadf28c15aea7f455e9e42666622bcd0",
     "full_name": "BS.CKI Trần Minh Quân",
     "department": "Nội tổng quát",
-    "linked_patient_id": null,
-    "salt": "e1350a796cc87cbb1f1bd8f0042af968",
-    "hash": "9f62c1ffda91304369983aa08f3d2c24b12c6cd3438a02bc86bdd561d8fa0cfd"
+    "phone": "0909000222",
+    "linked_patient_id": null
   },
   "doctor_timmach": {
+    "id": 3,
     "role": "doctor",
+    "salt": "16552cd6b750ccc2111d58816c914799",
+    "hash": "915622a2d6aa43dae91a69140a9840e6f1208ac6684fa5e1f37febf476431186",
     "full_name": "ThS.BS Lê Hoàng Nam",
     "department": "Tim mạch",
-    "linked_patient_id": null,
-    "salt": "b856d77a72f0b204adb248f34dfebf09",
-    "hash": "ccd3006bd39e1812e4210ea3039f82675de2122abf7c2ee5fd9f64dfe23ae08a"
+    "phone": "0909000223",
+    "linked_patient_id": null
   },
   "doctor_noitiet": {
+    "id": 4,
     "role": "doctor",
+    "salt": "cd61c1e38f3dbc40c532ad4aca06d684",
+    "hash": "18776810851e8dfabd0dad5d92abec833d77ee22feffa7243495487c3aab2a47",
     "full_name": "BS.CKII Phạm Thu Hà",
     "department": "Nội tiết",
-    "linked_patient_id": null,
-    "salt": "ac8f7124d1488eff5ddc5ccaffb0f5a8",
-    "hash": "2bfd350960ad52b2bc4ceb6324cf8e8a546cb6a78d0e77fbd81417dd43a3cfa1"
+    "phone": "0909000224",
+    "linked_patient_id": null
   },
   "doctor_tmh": {
+    "id": 5,
     "role": "doctor",
+    "salt": "84e3dd8a289f153ed080aaf3487c9929",
+    "hash": "056b128388dc78c0705d6d56276ece352e61287163831a7747b523c15f0994e4",
     "full_name": "BS.CKI Vũ Đức Anh",
     "department": "Tai Mũi Họng",
-    "linked_patient_id": null,
-    "salt": "0cfcca7a3b72d799a17bfe70b16f3f15",
-    "hash": "cc3c01467d4cce842ef324469a602e5b7a9f0db6df5059aa8e3ef505a534dcd8"
+    "phone": "0909000225",
+    "linked_patient_id": null
   },
   "nurse": {
+    "id": 6,
     "role": "nurse",
+    "salt": "b9256622a4c854d562026f609e73a826",
+    "hash": "bc430e1be303ead311548fffcc73127c28204e2dad545befe73c9f5535375bd4",
     "full_name": "ĐD. Nguyễn Thị Mai Hương",
     "department": "Nội tổng quát",
-    "linked_patient_id": null,
-    "salt": "bf6773808f3be75e821f26577cbed4a4",
-    "hash": "da55edac522e7694a3d6674c0fed304529623e9ce98278ef1ed20b9699ca5bc3"
+    "phone": "0909000333",
+    "linked_patient_id": null
+  },
+  "admin": {
+    "id": 8,
+    "role": "admin",
+    "salt": "b9fbf6e714beda841e40d8bb600cb836",
+    "hash": "b2ec0af1d1a6f2ac56294de5c7f40d8d93820ab8f1ebadf269545e09c644425f",
+    "full_name": "Quản trị viên Hệ thống",
+    "department": "Quản trị hệ thống",
+    "phone": "0909000111",
+    "linked_patient_id": null
   },
   "patient": {
+    "id": 9,
     "role": "patient",
+    "salt": "d1ff8d995e57a02226b53d241baf3cff",
+    "hash": "44d7f4eabc6c95ef04ffebe10cef57ae9a2c9761bd28de39d2fbe01bf102b263",
     "full_name": "Nguyễn An (giả lập)",
-    "department": null,
-    "linked_patient_id": "DEMO-001",
-    "salt": "c40205da883d46d4d5ca194b3eadc450",
-    "hash": "e517c4df88d28d83298c9efdd8e7e38049c5aa8416ffd054f3a582dc1cb69802"
+    "department": "",
+    "phone": "0901000001",
+    "linked_patient_id": "DEMO-001"
   }
 }

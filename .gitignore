@@ -1,16 +1,20 @@
-# --- Tài liệu cá nhân & Cẩm nang ôn tập (Không push lên GitHub) ---
-docs/
-HICP_SECURITY_FEATURES_DEEP_DIVE.md
-*.zip
-
-# --- Dữ liệu runtime, Database & Backup nhạy cảm ---
-*.db
-*.sqlite
-*.sqlite3
-*.enc
-backups/
+# Byte-compiled / cache files
 __pycache__/
 *.py[cod]
+*$py.class
+
+# Local documentation folder (excluded from Git repository)
+docs/
+
+# Runtime & temporary files
+*.bak
+*.bak.*
+*.tmp
+*.swp
 .env
-.venv/
-venv/
+
+# Terraform local state & provider cache
+deploy/terraform/.terraform/
+deploy/terraform/*.tfstate
+deploy/terraform/*.tfstate.*
+deploy/terraform/.terraform.lock.hcl

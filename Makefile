@@ -15,6 +15,7 @@ help:
 
 setup:
 	HICP_DATA_DIR=./data_vault HICP_NONINTERACTIVE=1 python3 scripts/setup.py
+	HICP_DATA_DIR=./data_vault python3 -c "import app; app.init_storage()"
 
 lint:
 	python3 -m py_compile app.py scripts/setup.py scripts/test-app.py scripts/dns-lab.py
@@ -37,7 +38,7 @@ docker-down:
 	docker compose down
 
 backup:
-	sudo bash scripts/backup-ehr.sh
+	DATA_DIR=./data_vault BACKUP_DIR=./backups bash scripts/backup-ehr.sh
 
 deploy-lab-https:
 	sudo bash scripts/deploy-domain-https.sh --lab-https
