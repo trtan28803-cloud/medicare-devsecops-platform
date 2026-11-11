@@ -18,3 +18,16 @@ deploy/terraform/.terraform/
 deploy/terraform/*.tfstate
 deploy/terraform/*.tfstate.*
 deploy/terraform/.terraform.lock.hcl
+
+# Dữ liệu runtime & bí mật (KHÔNG commit)
+data_vault/
+backups/
+*.db
+*.db-wal
+*.db-shm
+audit.jsonl
+.vault.key
+*.key
+*.pem
+*.env
+.env.*
